@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.comments.Comment;
 import ru.skypro.homework.dto.comments.Comments;
 import ru.skypro.homework.dto.comments.CreateOrUpdateComment;
@@ -36,9 +38,10 @@ public class CommentsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content())
             }
     )
-    public ResponseEntity<Comments> getComments(@PathVariable Integer id) {
+    //public ResponseEntity<Comments> getComments(@PathVariable Integer id) {
+    public Comments getComments(@PathVariable Integer id) {
 
-        return ResponseEntity.ok().build();
+        return new Comments();
     }
 
     @PostMapping("/ads/{id}/comments")
@@ -57,27 +60,40 @@ public class CommentsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content())
             }
     )
-    public ResponseEntity<Comment> addComment(
+    //public ResponseEntity<Comment> addComment(
+    public Comment addComment(
             @PathVariable Integer id,
             @RequestBody(required = false) CreateOrUpdateComment updateComment
     ) {
-        return ResponseEntity.ok().build();
+        if (updateComment == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        Comment comment = new Comment();
+        comment.setPk(100);
+        comment.setText(updateComment.getText());
+
+        return comment;
     }
 
+
     @DeleteMapping("/ads/{adId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Удаление комментария",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "OK", content = @Content()),
+                    @ApiResponse(responseCode = "204", description = "No content", content = @Content()),
+                    //@ApiResponse(responseCode = "200", description = "OK", content = @Content()),
+                    // Что писать-то??? в ТЗ одно, в схеме другое.
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content()),
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public ResponseEntity<Void> deleteComment(
+    //public ResponseEntity<Void> deleteComment(
+    public void deleteComment(
             @PathVariable Integer adId,
             @PathVariable Integer commentId) {
-        return ResponseEntity.ok().build();
+
     }
 
     @Operation(
@@ -99,12 +115,19 @@ public class CommentsController {
     @PatchMapping("/ads/{adId}/comments/{commentId}")
 
 
-    public ResponseEntity<Comment> updateComment(
+    public Comment updateComment(
             @PathVariable Integer adId,
             @PathVariable Integer commentId,
             @RequestBody(required = false) CreateOrUpdateComment commentUpdate
     ) {
-        return ResponseEntity.ok().build();
+        if(commentUpdate == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        Comment comment= new Comment();
+        comment.setPk(100);
+        comment.setText(commentUpdate.getText());
+
+        return comment;
     }
 
 

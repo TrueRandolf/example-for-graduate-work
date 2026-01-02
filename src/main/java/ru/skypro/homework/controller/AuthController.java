@@ -8,10 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
 import ru.skypro.homework.service.AuthService;
@@ -33,26 +31,23 @@ public class AuthController {
             @ApiResponse(responseCode = "401",description = "Unauthorized", content = @Content()),
     })
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody Login login) {
-        if (authService.login(login.getUsername(), login.getPassword())) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public void login(@Valid @RequestBody Login login) {
+        if (!authService.login(login.getUsername(), login.getPassword())) {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @Tag(name="Регистрация")
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Регистрация пользователя",
     responses = {
         @ApiResponse(responseCode = "201",description = "Created", content = @Content()),
         @ApiResponse(responseCode = "400",description = "Bad Request", content = @Content()),
     })
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@Valid @RequestBody Register register) {
-        if (authService.register(register)) {
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public void register(@Valid @RequestBody Register register) {
+        if (!authService.register(register)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 }

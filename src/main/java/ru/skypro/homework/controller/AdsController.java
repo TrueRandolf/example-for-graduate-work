@@ -9,23 +9,27 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
 
 import javax.validation.Valid;
+import java.util.LinkedList;
+import java.util.List;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
-@Tag(name="Объявления")
+@Tag(name = "Объявления")
 public class AdsController {
 
     @GetMapping("/ads")
@@ -42,11 +46,13 @@ public class AdsController {
                     )
             }
     )
-    public ResponseEntity<Ads> getAllAds() {
-        return ResponseEntity.ok().build();
+    //public ResponseEntity<Ads> getAllAds() {
+    public List<Ads> getAllAds() {
+        return new LinkedList<>();
     }
 
     @PostMapping(value = "/ads", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Добавление объявления",
             responses = {
@@ -55,13 +61,23 @@ public class AdsController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public ResponseEntity<Ad> addAd(
+    //public ResponseEntity<Ad> addAd(
+    public Ad addAd(
             @RequestPart("properties")
-            @Parameter(schema = @Schema(type = "object",description = ""))
+            @Parameter(schema = @Schema(type = "object", description = ""))
             @Valid CreateOrUpdateAd properties,
             @RequestPart("image") MultipartFile image,
             Authentication authentication) {
-        return ResponseEntity.ok().build();
+        if (properties == null || image == null || image.getOriginalFilename().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        Ad ad = new Ad();
+        ad.setPk(100);
+        ad.setTitle(properties.getTitle());
+        ad.setPrice(properties.getPrice());
+        ad.setImage(image.getOriginalFilename());
+
+        return ad;
     }
 
     @GetMapping("/ads/{id}")
@@ -77,12 +93,14 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public ResponseEntity<ExtendedAd> getAds(@PathVariable Integer id) {
+    //public ResponseEntity<ExtendedAd> getAds(@PathVariable Integer id) {
+    public ExtendedAd getAds(@PathVariable Integer id) {
 
-        return ResponseEntity.ok().build();
+        return new ExtendedAd();
     }
 
     @DeleteMapping("/ads/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Удаление объявления",
             responses = {
@@ -92,8 +110,8 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public ResponseEntity<Void> removeAd(@PathVariable Integer id) {
-        return ResponseEntity.ok().build();
+    //public ResponseEntity<Void> removeAd(@PathVariable Integer id) {
+    public void removeAd(@PathVariable Integer id) {
     }
 
     @PatchMapping("/ads/{id}")
@@ -114,10 +132,20 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public ResponseEntity<CreateOrUpdateAd> updateAds(
+    //public ResponseEntity<CreateOrUpdateAd> updateAds(
+    public Ad updateAds(
             @PathVariable Integer id,
             @RequestBody(required = false) CreateOrUpdateAd update) {
-        return ResponseEntity.ok().build();
+            if(update == null){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }
+        Ad updateAd = new Ad();
+            updateAd.setPk(id);
+            updateAd.setTitle(update.getTitle());
+            updateAd.setTitle(update.getTitle());
+            updateAd.setPrice(update.getPrice());
+
+        return updateAd;
     }
 
 
@@ -136,12 +164,15 @@ public class AdsController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public ResponseEntity<Ads> getAdsMe(Authentication authentication) {
-        return ResponseEntity.ok().build();
+    //public ResponseEntity<Ads> getAdsMe(Authentication authentication) {
+    public Ads getAdsMe(Authentication authentication){
+        Ads ads = new Ads();
+        ads.setCount(10);
+        return ads;
     }
 
 
-    @PatchMapping(value = "/ads/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)//, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PatchMapping(value = "/ads/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Обновление картинки объявления",
             responses = {
@@ -150,10 +181,6 @@ public class AdsController {
                             description = "OK",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,//"application/octet-stream",
-//                                    schema = @Schema(
-//                                            type = "array",
-//                                            items = @Schema(type = "string",format = "byte")
-//                                    )
                                     array = @ArraySchema(schema = @Schema(type = "string", format = "byte"))
                             )
                     ),

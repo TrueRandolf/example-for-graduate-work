@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.users.NewPassword;
 import ru.skypro.homework.dto.users.UpdateUser;
 import ru.skypro.homework.dto.users.User;
@@ -35,8 +36,9 @@ public class UsersController {
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
             }
     )
-    public ResponseEntity<Void> setPassword(@Valid @RequestBody NewPassword newPassword) {
-        return ResponseEntity.ok().build();
+    //public ResponseEntity<Void> setPassword(@Valid @RequestBody NewPassword newPassword) {
+    public void setPassword(@Valid @RequestBody NewPassword newPassword) {
+
     }
 
     @GetMapping("/users/me")
@@ -52,8 +54,10 @@ public class UsersController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public ResponseEntity<User> getUser(Authentication authentication) {
-        return ResponseEntity.ok().build();
+    //public ResponseEntity<User> getUser(Authentication authentication) {
+    public User getUser(Authentication authentication) {
+        User user = new User();
+        return user;
     }
 
     @PatchMapping("/users/me")
@@ -69,16 +73,17 @@ public class UsersController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public ResponseEntity<UpdateUser> updateUser(@Valid @RequestBody(required = false) UpdateUser updateUser) {
-        if(updateUser == null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    //public UResponseEntity<UpdateUser> updateUser(@Valid @RequestBody(required = false) UpdateUser updateUser) {
+    public UpdateUser updateUser(@Valid @RequestBody(required = false) UpdateUser updateUser) {
+        if (updateUser == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         UpdateUser fakeUser = new UpdateUser();
         fakeUser.setFirstName(updateUser.getFirstName());
         fakeUser.setLastName(updateUser.getLastName());
         fakeUser.setPhone(updateUser.getPhone());
 
-        return ResponseEntity.ok(fakeUser);
+        return fakeUser;
     }
 
     @PatchMapping(value = "/users/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -89,7 +94,7 @@ public class UsersController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public ResponseEntity<Void> updateUserImage(@RequestPart("image") MultipartFile image) {
-        return ResponseEntity.ok().build();
+    //public ResponseEntity<Void> updateUserImage(@RequestPart("image") MultipartFile image) {
+    public void updateUserImage(@RequestPart("image") MultipartFile image) {
     }
 }

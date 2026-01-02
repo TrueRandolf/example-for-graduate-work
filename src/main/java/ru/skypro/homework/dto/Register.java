@@ -28,7 +28,6 @@ public class Register {
 
     @Schema(description = "телефон пользователя", pattern = "\\+7\\s?(?\\d{3}\\)?\\s?\\d{3}-?\\d{2}-?\\d{2}",example = "+7179)313-80-02")
     @Pattern(regexp = "\\+7\\s?\\(?\\d{3}\\)?\\s?\\d{3}-?\\d{2}-?\\d{2}")
-    //                 \\+7\\s?\\(?\\d{3}\\)?\\s?\\d{3}-?\\d{2}-?\\d{2}
     private String phone;
 
     @Schema(description = "роль пользователя")
