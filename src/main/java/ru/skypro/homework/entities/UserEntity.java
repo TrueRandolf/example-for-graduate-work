@@ -3,7 +3,6 @@ package ru.skypro.homework.entities;
 import lombok.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,11 +15,9 @@ import java.time.LocalDateTime;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false, unique = true)
     private Long id;
 
-    @Column(name = "user_name", unique = true, nullable = false)
-    @NotBlank
+    @Column(name = "user_name", unique = true, nullable = false, length = 64)
     private String userName;
 
     @Column(name = "deleted_at")
@@ -32,12 +29,10 @@ public class UserEntity {
     @Column(name = "last_name", length = 16)
     private String lastName;
 
-    @Column(name = "phone")
-    @NotBlank
+    @Column(name = "phone", nullable = false)
     private String phone;
 
     @Column(name = "user_image")
     private String userImage;
-
 
 }

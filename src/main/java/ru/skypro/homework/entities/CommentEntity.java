@@ -7,7 +7,11 @@ import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "comments")
+//@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_ad_id", columnList = "ad_id"),
+        @Index(name = "idx_comments_user_id", columnList = "user_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,6 +35,6 @@ public class CommentEntity {
     @Column(name = "created_time", nullable = false)
     private Long createdAt;
 
-    @Column(name = "text", length = 64)
+    @Column(name = "text", nullable = false, length = 64)
     private String text;
 }
