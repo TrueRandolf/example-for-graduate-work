@@ -37,4 +37,7 @@ public class AdEntity {
     @Column(name = "title",nullable = false, length = 64)
     private String title;
 
+    @Column(name = "description",nullable = false, length = 64)
+    private String description;
+
 }
