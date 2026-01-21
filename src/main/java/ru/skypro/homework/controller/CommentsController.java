@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.comments.Comment;
 import ru.skypro.homework.dto.comments.Comments;
 import ru.skypro.homework.dto.comments.CreateOrUpdateComment;
@@ -44,7 +44,6 @@ public class CommentsController {
     )
     public Comments getComments(@PathVariable Integer id) {
         return commentService.getAllCommentsAd(Long.valueOf(id));
-        //return CommentsTestData.createFullComments();
     }
 
     @PostMapping("/ads/{id}/comments")
@@ -65,12 +64,11 @@ public class CommentsController {
     )
     public Comment addComment(
             @PathVariable Integer id,
-            @Valid @RequestBody(required = false) CreateOrUpdateComment updateComment
+            @Valid @RequestBody(required = false) CreateOrUpdateComment updateComment,
+            Authentication authentication
+
     ) {
-        if (updateComment == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        return commentService.addCommentToAd(Long.valueOf(id), updateComment);
+        return commentService.addCommentToAd(Long.valueOf(id), updateComment, authentication);
     }
 
 
@@ -89,8 +87,9 @@ public class CommentsController {
     )
     public void deleteComment(
             @PathVariable Integer adId,
-            @PathVariable Integer commentId) {
-        commentService.deleteComment(Long.valueOf(adId), Long.valueOf(commentId));
+            @PathVariable Integer commentId,
+            Authentication authentication) {
+        commentService.deleteComment(Long.valueOf(adId), Long.valueOf(commentId), authentication);
     }
 
     @Operation(
@@ -113,10 +112,11 @@ public class CommentsController {
     public Comment updateComment(
             @PathVariable Integer adId,
             @PathVariable Integer commentId,
-            @Valid @RequestBody(required = false) CreateOrUpdateComment commentUpdate
+            @Valid @RequestBody(required = false) CreateOrUpdateComment commentUpdate,
+            Authentication authentication
     ) {
 
-        return commentService.updateComment(Long.valueOf(adId), Long.valueOf(commentId), commentUpdate);
+        return commentService.updateComment(Long.valueOf(adId), Long.valueOf(commentId), commentUpdate, authentication);
     }
 
 

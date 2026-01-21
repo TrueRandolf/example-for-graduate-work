@@ -23,12 +23,19 @@ spring:
         format_sql: true
         use_sql_comments: true
 
-# server port, run by default
+# Server port, run by default
 server:
   port: 8080
 
-# logger settings
+# Logger settings
 logging:
   level:
     org.hibernate.tool.schema: DEBUG
     org.springframework.security: DEBUG
+
+# Filepath settings
+app:
+  upload:
+    main-dir: resale_images
+    ads-dir: ads_images
+    avatars-dir: avatars_images

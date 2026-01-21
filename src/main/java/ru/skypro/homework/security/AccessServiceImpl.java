@@ -3,13 +3,13 @@ package ru.skypro.homework.security;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 import ru.skypro.homework.dto.Role;
-import ru.skypro.homework.repository.AdsRepository;
 
 @Slf4j
 @AllArgsConstructor
+@Service
 public class AccessServiceImpl implements AccessService {
-    private final AdsRepository adsRepository;
 
     @Override
     public boolean isOwner(String username, Authentication authentication) {

@@ -7,18 +7,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.users.NewPassword;
 import ru.skypro.homework.dto.users.UpdateUser;
 import ru.skypro.homework.dto.users.User;
 import ru.skypro.homework.service.UserService;
-import ru.skypro.homework.support.UserTestData;
 
 import javax.validation.Valid;
 
@@ -57,8 +53,6 @@ public class UsersController {
             }
     )
     public User getUser(Authentication authentication) {
-
-        //return UserTestData.createFullUser();
         return userService.getAuthUserInfo(authentication);
     }
 
@@ -75,7 +69,7 @@ public class UsersController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public UpdateUser updateUser(@Valid @RequestBody(required = false) UpdateUser user,Authentication authentication) {
+    public UpdateUser updateUser(@Valid @RequestBody(required = false) UpdateUser user, Authentication authentication) {
         return userService.updateAuthUser(user, authentication);
     }
 
@@ -88,6 +82,6 @@ public class UsersController {
             }
     )
     public void updateUserImage(@RequestPart("image") MultipartFile image, Authentication authentication) {
-        userService.updateAuthUserImage("path",authentication);
+        userService.updateAuthUserImage("path", authentication);
     }
 }

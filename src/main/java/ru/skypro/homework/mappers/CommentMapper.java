@@ -31,5 +31,10 @@ public interface CommentMapper {
 
     void updateCommentEntity(CreateOrUpdateComment dto, @MappingTarget CommentEntity entity);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "ad", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    CommentEntity toEntity(CreateOrUpdateComment createOrUpdateComment);
 
 }

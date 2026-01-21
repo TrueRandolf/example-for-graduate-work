@@ -1,7 +1,5 @@
 package ru.skypro.homework.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -13,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +20,6 @@ import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
 import ru.skypro.homework.service.AdService;
-import ru.skypro.homework.support.AdsTestData;
 
 import javax.validation.Valid;
 import java.io.IOException;
@@ -68,26 +64,16 @@ public class AdsController {
             }
     )
     public Ad addAd(
-            @RequestPart("properties") String propertiesString, // Принимаем как строку
-            //@RequestPart("properties")
-            //@Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-            //@Schema(type = "string", format = "binary") // Подсказка для Swagger, чтобы он не путался
-            //@Valid CreateOrUpdateAd properties,
+            @RequestPart("properties")
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            @Valid CreateOrUpdateAd properties,
             @RequestPart("image") MultipartFile image,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication
+    ) {
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            CreateOrUpdateAd properties = objectMapper.readValue(propertiesString, CreateOrUpdateAd.class);
-            return adService.addSimpleAd(properties, image, authentication);
-        } catch (JsonProcessingException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректный формат JSON в поле properties");
-        }
-
-
-
-//        return adService.adSimpleAd(properties, image, authentication);
+        return adService.addSimpleAd(properties, image, authentication);
     }
+
 
     @GetMapping("/ads/{id}")
     @Operation(
@@ -105,7 +91,6 @@ public class AdsController {
     public ExtendedAd getAds(@PathVariable Integer id, Authentication authentication) {
 
         return adService.getAdInfo(Long.valueOf(id), authentication);
-        //return AdsTestData.createFullExtendedAd();
     }
 
     @DeleteMapping("/ads/{id}")
@@ -120,7 +105,7 @@ public class AdsController {
             }
     )
     public void removeAd(@PathVariable Integer id, Authentication authentication) {
-        adService.deleteSimpleAd(Long.valueOf(id),authentication);
+        adService.deleteSimpleAd(Long.valueOf(id), authentication);
     }
 
     @PatchMapping("/ads/{id}")
@@ -144,7 +129,7 @@ public class AdsController {
     public Ad updateAds(
             @PathVariable Integer id,
             @RequestBody(required = false) CreateOrUpdateAd update, Authentication authentication) {
-        return adService.updateSingleAd(Long.valueOf(id),update,authentication);
+        return adService.updateSingleAd(Long.valueOf(id), update, authentication);
     }
 
 
@@ -164,8 +149,6 @@ public class AdsController {
             }
     )
     public Ads getAdsMe(Authentication authentication) {
-        //Ads ads = AdsTestData.createFullAds();
-        //return ads;
         return adService.getAllAdsAuthUser(authentication);
     }
 
@@ -179,7 +162,7 @@ public class AdsController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
-                                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,//"application/octet-stream",
+                                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
                                     array = @ArraySchema(schema = @Schema(type = "string", format = "byte"))
                             )
                     ),
