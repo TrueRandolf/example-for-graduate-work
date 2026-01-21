@@ -55,10 +55,11 @@ public class UserServiceImpl implements UserService {
         String login = authentication.getName();
         log.info("user login: {}", login);
 
-        UserEntity userEntity = userRepository.findByUserName(login)
-                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
+//        UserEntity userEntity = userRepository.findByUserName(login)
+//                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
         AuthEntity authEntity = authRepository.findByUser_UserName(login)
                 .orElseThrow(() -> new UsernameNotFoundException("auth not found"));
+        UserEntity userEntity = authEntity.getUser();
 
         return userMapper.toUserDto(userEntity, authEntity);
     }

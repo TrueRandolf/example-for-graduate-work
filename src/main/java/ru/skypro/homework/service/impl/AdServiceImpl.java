@@ -1,63 +1,114 @@
 package ru.skypro.homework.service.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.webjars.NotFoundException;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
+import ru.skypro.homework.entities.AdEntity;
+import ru.skypro.homework.entities.UserEntity;
+import ru.skypro.homework.mappers.AdMapper;
+import ru.skypro.homework.repository.AdsRepository;
+import ru.skypro.homework.repository.UserRepository;
+import ru.skypro.homework.security.AccessService;
 import ru.skypro.homework.service.AdService;
-import ru.skypro.homework.support.AdsTestData;
+import ru.skypro.homework.service.ImageService;
 
-import java.util.Objects;
-
+@AllArgsConstructor
 @Slf4j
 @Service
 public class AdServiceImpl implements AdService {
 
+    private final UserRepository userRepository;
+    private final AdsRepository adsRepository;
+    private final AdMapper mapper;
+    private final AccessService accessService;
+    private final ImageService imageService;
+
+
+    // DONE!!!
+    @Transactional(readOnly = true)
     public Ads getAds() {
         log.info("invoked ad service getAllAds");
-        return AdsTestData.createFullAds();
+        return mapper.toAds(adsRepository.findAll());
     }
 
-    public Ad adSimpleAd(CreateOrUpdateAd createOrUpdateAd, MultipartFile image) {
-        log.info("invoked ad service ad ad");
-        if (createOrUpdateAd == null || image == null || Objects.requireNonNull(image.getOriginalFilename()).isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        Ad ad = AdsTestData.createFullAd();
-        ad.setPk(AdsTestData.ANOTHER_AD_ID);
-        ad.setTitle(createOrUpdateAd.getTitle());
-        ad.setPrice(createOrUpdateAd.getPrice());
-        //ad.setImage(image.getOriginalFilename());
-        // где-то тут будет вызов метода из имагесервис
+    // DONE !!!!
+    @Transactional
+    public Ad addSimpleAd(CreateOrUpdateAd createOrUpdateAd, MultipartFile image, Authentication authentication) {
+        log.info("invoked ad service add ad");
 
-        return ad;
+        UserEntity userEntity = userRepository.findByUserName(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
+        AdEntity adEntity = mapper.toEntity(createOrUpdateAd);
+        adEntity.setUser(userEntity);
+        adEntity.setAdImage("/image.png");  // !!!MOCK
+        adsRepository.save(adEntity);  // <- to sleep peacefully!
+        return mapper.toAdDto(adEntity);
 
     }
 
-    public ExtendedAd getAdInfo(Long id) {
+    // DONE !!!
+    @Transactional(readOnly = true)
+    public ExtendedAd getAdInfo(Long id, Authentication authentication) {
         log.info("invoked ad service get ad info");
-        return AdsTestData.createFullExtendedAd();
+        //String login = authentication.getName();
+
+        AdEntity adEntity = adsRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return mapper.toExtendedAd(adEntity);
     }
 
-    public boolean deleteSimpleAd(Long id) {
+    // DONE !!!
+    @Transactional
+    public void deleteSimpleAd(Long id, Authentication authentication) {
         log.info("invoked ad service delete ad");
-        return true;
+        AdEntity adEntity = adsRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("ad not found"));
+
+        if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+        String filePath = adEntity.getAdImage();
+        adsRepository.deleteById(id);
+        if (filePath != null) imageService.deleteImage(filePath);
+
     }
 
-    public Ad updateSingleAd(Long id, CreateOrUpdateAd ad) {
+    // DONE !!!
+    @Transactional
+    public Ad updateSingleAd(Long id, CreateOrUpdateAd ad, Authentication authentication) {
         log.info("invoked ad service update ad");
-        return AdsTestData.createFullAd();
+        AdEntity adEntity = adsRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("ad not found"));
+
+        if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        mapper.updateAdEntity(ad, adEntity);
+        adsRepository.save(adEntity);
+        return mapper.toAdDto(adEntity);
+
     }
 
-    public Ads getAllAdsAuthUser() {
+    // DONE !!!
+    @Transactional(readOnly = true)
+    public Ads getAllAdsAuthUser(Authentication authentication) {
         log.info("invoked ad service getAllAds user");
-        return AdsTestData.createFullAds();
+        String login = authentication.getName();
+        return mapper.toAds(adsRepository.findByUser_UserNameAndUserDeletedAtIsNull(login));
     }
+
 
     public boolean updateAdImage(Long id) {
         log.info("invoked ad service update image");

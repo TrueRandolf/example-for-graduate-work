@@ -26,7 +26,7 @@ public class WebSecurityConfig {
             "/webjars/**",
             "/login",
             "/register"
-            , "/ads"
+            //, "/ads"   //не забудь убрать!! это - отладка!!!
 
     };
 

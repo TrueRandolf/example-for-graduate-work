@@ -1,4 +1,4 @@
-package ru.skypro.homework.service;
+package ru.skypro.homework.security;
 
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -33,11 +33,5 @@ public class MyUserDetailsService implements UserDetailsService {
                         .build();
         System.out.println("userDetails.toString() = " + userDetails.toString());
         return userDetails;
-
-//        return User.builder()
-//                .username(authEntity.getUser().getUserName())
-//                .password(authEntity.getPassword())
-//                .roles(authEntity.getRole().name())
-//                .build();
     }
 }

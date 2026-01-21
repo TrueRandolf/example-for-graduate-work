@@ -15,6 +15,8 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AdMapper {
 
+    AdEntity toEntity(CreateOrUpdateAd createOrUpdateAd);
+
     @Mapping(target = "author", source = "user.id")
     @Mapping(target = "image", source = "adImage")
     @Mapping(target = "pk", source = "id")

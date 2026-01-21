@@ -1,5 +1,7 @@
 package ru.skypro.homework.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -36,7 +38,6 @@ public class AdsController {
     private final AdService adService;
 
 
-
     @GetMapping("/ads")
     @Operation(
             summary = "Получение всех объявлений",
@@ -67,23 +68,25 @@ public class AdsController {
             }
     )
     public Ad addAd(
-            @RequestPart("properties")
-            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-            @Valid CreateOrUpdateAd properties,
+            @RequestPart("properties") String propertiesString, // Принимаем как строку
+            //@RequestPart("properties")
+            //@Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            //@Schema(type = "string", format = "binary") // Подсказка для Swagger, чтобы он не путался
+            //@Valid CreateOrUpdateAd properties,
             @RequestPart("image") MultipartFile image,
             Authentication authentication) {
 
-            return adService.adSimpleAd(properties, image);
-//        if (properties == null || image == null || image.getOriginalFilename().isBlank()) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-//        }
-//        Ad ad = AdsTestData.createFullAd();
-//        ad.setPk(AdsTestData.ANOTHER_AD_ID);
-//        ad.setTitle(properties.getTitle());
-//        ad.setPrice(properties.getPrice());
-//        ad.setImage(image.getOriginalFilename());
-//
-//        return ad;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            CreateOrUpdateAd properties = objectMapper.readValue(propertiesString, CreateOrUpdateAd.class);
+            return adService.addSimpleAd(properties, image, authentication);
+        } catch (JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректный формат JSON в поле properties");
+        }
+
+
+
+//        return adService.adSimpleAd(properties, image, authentication);
     }
 
     @GetMapping("/ads/{id}")
@@ -99,9 +102,10 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public ExtendedAd getAds(@PathVariable Integer id) {
+    public ExtendedAd getAds(@PathVariable Integer id, Authentication authentication) {
 
-        return AdsTestData.createFullExtendedAd();
+        return adService.getAdInfo(Long.valueOf(id), authentication);
+        //return AdsTestData.createFullExtendedAd();
     }
 
     @DeleteMapping("/ads/{id}")
@@ -115,7 +119,8 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public void removeAd(@PathVariable Integer id) {
+    public void removeAd(@PathVariable Integer id, Authentication authentication) {
+        adService.deleteSimpleAd(Long.valueOf(id),authentication);
     }
 
     @PatchMapping("/ads/{id}")
@@ -138,15 +143,8 @@ public class AdsController {
     )
     public Ad updateAds(
             @PathVariable Integer id,
-            @RequestBody(required = false) CreateOrUpdateAd update) {
-        if (update == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        Ad updateAd = AdsTestData.createFullAd();
-        updateAd.setTitle(update.getTitle());
-        updateAd.setPrice(update.getPrice());
-
-        return updateAd;
+            @RequestBody(required = false) CreateOrUpdateAd update, Authentication authentication) {
+        return adService.updateSingleAd(Long.valueOf(id),update,authentication);
     }
 
 
@@ -166,8 +164,9 @@ public class AdsController {
             }
     )
     public Ads getAdsMe(Authentication authentication) {
-        Ads ads = AdsTestData.createFullAds();
-        return ads;
+        //Ads ads = AdsTestData.createFullAds();
+        //return ads;
+        return adService.getAllAdsAuthUser(authentication);
     }
 
 

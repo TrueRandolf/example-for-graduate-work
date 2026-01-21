@@ -1,5 +1,6 @@
 package ru.skypro.homework.service;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
@@ -9,15 +10,15 @@ import ru.skypro.homework.dto.ads.ExtendedAd;
 public interface AdService {
     Ads getAds();
 
-    Ad adSimpleAd(CreateOrUpdateAd ad, MultipartFile image);
+    Ad addSimpleAd(CreateOrUpdateAd ad, MultipartFile image, Authentication authentication);
 
-    ExtendedAd getAdInfo(Long id);
+    ExtendedAd getAdInfo(Long id, Authentication authentication);
 
-    boolean deleteSimpleAd(Long id);
+    void deleteSimpleAd(Long id,Authentication authentication);
 
-    Ad updateSingleAd(Long id, CreateOrUpdateAd ad);
+    Ad updateSingleAd(Long id, CreateOrUpdateAd ad, Authentication authentication);
 
-    Ads getAllAdsAuthUser();
+    Ads getAllAdsAuthUser(Authentication authentication);
 
     boolean updateAdImage(Long id);
 }
