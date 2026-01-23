@@ -1,6 +1,7 @@
 package ru.skypro.homework.service;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.users.NewPassword;
 import ru.skypro.homework.dto.users.UpdateUser;
 import ru.skypro.homework.dto.users.User;
@@ -12,5 +13,5 @@ public interface UserService {
 
     UpdateUser updateAuthUser(UpdateUser updateUser, Authentication authentication);
 
-    boolean updateAuthUserImage(String filepath,Authentication authentication);
+    void updateAuthUserImage(MultipartFile file, Authentication authentication);
 }

@@ -1,9 +1,6 @@
 package ru.skypro.homework.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
@@ -18,10 +15,11 @@ public interface AdMapper {
     AdEntity toEntity(CreateOrUpdateAd createOrUpdateAd);
 
     @Mapping(target = "author", source = "user.id")
-    @Mapping(target = "image", source = "adImage")
+    @Mapping(target = "image", source = "adImage", qualifiedByName = "adImageToPath")
     @Mapping(target = "pk", source = "id")
     Ad toAdDto(AdEntity adEntity);
 
+    @Named("adImageToPath")
     default String mapImage(String adImage) {
         if (adImage == null) return null;
         return "/images/" + adImage;

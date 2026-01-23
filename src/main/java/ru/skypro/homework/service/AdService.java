@@ -20,5 +20,5 @@ public interface AdService {
 
     Ads getAllAdsAuthUser(Authentication authentication);
 
-    boolean updateAdImage(Long id);
+    byte[] updateAdImage(MultipartFile file, Long id, Authentication authentication);
 }

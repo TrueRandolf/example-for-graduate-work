@@ -73,15 +73,15 @@ public class UsersController {
         return userService.updateAuthUser(user, authentication);
     }
 
-    @PatchMapping(value = "/users/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(
-            summary = "Обновление аватара авторизованного пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK", content = @Content()),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
-            }
-    )
-    public void updateUserImage(@RequestPart("image") MultipartFile image, Authentication authentication) {
-        userService.updateAuthUserImage("path", authentication);
-    }
+        @PatchMapping(value = "/users/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @Operation(
+                summary = "Обновление аватара авторизованного пользователя",
+                responses = {
+                        @ApiResponse(responseCode = "200", description = "OK", content = @Content()),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+                }
+        )
+        public void updateUserImage(@RequestPart("image") MultipartFile image, Authentication authentication) {
+            userService.updateAuthUserImage(image, authentication);
+        }
 }

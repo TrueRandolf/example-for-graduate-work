@@ -2,26 +2,27 @@ package ru.skypro.homework.service.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-import org.webjars.NotFoundException;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
 import ru.skypro.homework.entities.AdEntity;
 import ru.skypro.homework.entities.UserEntity;
+import ru.skypro.homework.exceptions.ForbiddenException;
+import ru.skypro.homework.exceptions.NotFoundException;
 import ru.skypro.homework.mappers.AdMapper;
 import ru.skypro.homework.repository.AdsRepository;
 import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.security.AccessService;
 import ru.skypro.homework.service.AdService;
 import ru.skypro.homework.service.ImageService;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 @AllArgsConstructor
 @Slf4j
@@ -35,48 +36,53 @@ public class AdServiceImpl implements AdService {
     private final ImageService imageService;
 
 
-    // DONE!!!
     @Transactional(readOnly = true)
     public Ads getAds() {
         log.info("invoked ad service getAllAds");
         return mapper.toAds(adsRepository.findAll());
     }
 
-    // DONE !!!!
     @Transactional
     public Ad addSimpleAd(CreateOrUpdateAd createOrUpdateAd, MultipartFile image, Authentication authentication) {
         log.info("invoked ad service add ad");
 
         UserEntity userEntity = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
         AdEntity adEntity = mapper.toEntity(createOrUpdateAd);
         adEntity.setUser(userEntity);
-        adEntity.setAdImage("/image.png");  // !!!MOCK
-        adsRepository.save(adEntity);  // <- to sleep peacefully!
+
+        String imagePath = imageService.saveAdImage(image, userEntity.getId());
+        adEntity.setAdImage(imagePath);
+        adsRepository.save(adEntity);
+        log.info("Ad saved. Image part: {}", imagePath);
         return mapper.toAdDto(adEntity);
 
     }
 
-    // DONE !!!
     @Transactional(readOnly = true)
     public ExtendedAd getAdInfo(Long id, Authentication authentication) {
         log.info("invoked ad service get ad info");
-        //String login = authentication.getName();
 
         AdEntity adEntity = adsRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("Ad not found"));
+
+        if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
+            throw new ForbiddenException("Access denied");
+        }
+
         return mapper.toExtendedAd(adEntity);
     }
 
-    // DONE !!!
+
     @Transactional
     public void deleteSimpleAd(Long id, Authentication authentication) {
         log.info("invoked ad service delete ad");
         AdEntity adEntity = adsRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("ad not found"));
+                .orElseThrow(() -> new NotFoundException("Ad not found"));
 
         if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            throw new ForbiddenException("Access denied");
         }
         String filePath = adEntity.getAdImage();
         adsRepository.deleteById(id);
@@ -84,15 +90,14 @@ public class AdServiceImpl implements AdService {
 
     }
 
-    // DONE !!!
     @Transactional
     public Ad updateSingleAd(Long id, CreateOrUpdateAd ad, Authentication authentication) {
         log.info("invoked ad service update ad");
         AdEntity adEntity = adsRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("ad not found"));
+                .orElseThrow(() -> new NotFoundException("Ad not found"));
 
         if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            throw new ForbiddenException("Access denied");
         }
 
         mapper.updateAdEntity(ad, adEntity);
@@ -101,7 +106,6 @@ public class AdServiceImpl implements AdService {
 
     }
 
-    // DONE !!!
     @Transactional(readOnly = true)
     public Ads getAllAdsAuthUser(Authentication authentication) {
         log.info("invoked ad service getAllAds user");
@@ -109,10 +113,34 @@ public class AdServiceImpl implements AdService {
         return mapper.toAds(adsRepository.findByUser_UserNameAndUserDeletedAtIsNull(login));
     }
 
-
-    public boolean updateAdImage(Long id) {
+    @Transactional
+    public byte[] updateAdImage(MultipartFile file, Long id, Authentication authentication) {
         log.info("invoked ad service update image");
-        return true;
+
+        AdEntity adEntity = adsRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("ad not found"));
+
+        if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
+            throw new ForbiddenException("Access denied");
+        }
+
+        Long userId = adEntity.getUser().getId();
+
+        String previousImage = adEntity.getAdImage();
+        String newImage = imageService.saveAdImage(file, userId);
+        adEntity.setAdImage(newImage);
+        adsRepository.save(adEntity);
+        if (!(previousImage == null || previousImage.isBlank())) {
+            imageService.deleteImage(previousImage);
+        }
+        try {
+
+            return file.getBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException("File transfer error", e);
+        }
+
+
     }
 
 }

@@ -42,8 +42,8 @@ public class CommentsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content())
             }
     )
-    public Comments getComments(@PathVariable Integer id) {
-        return commentService.getAllCommentsAd(Long.valueOf(id));
+    public Comments getComments(@PathVariable Integer id, Authentication authentication) {
+        return commentService.getAllCommentsAd(Long.valueOf(id), authentication);
     }
 
     @PostMapping("/ads/{id}/comments")

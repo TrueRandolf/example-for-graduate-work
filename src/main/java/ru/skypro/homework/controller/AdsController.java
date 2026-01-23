@@ -14,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
@@ -22,7 +21,6 @@ import ru.skypro.homework.dto.ads.ExtendedAd;
 import ru.skypro.homework.service.AdService;
 
 import javax.validation.Valid;
-import java.io.IOException;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -172,17 +170,10 @@ public class AdsController {
             }
     )
     public byte[] updateImage(@PathVariable("id") Integer id,
-                              @RequestPart(value = "image") MultipartFile image) {
-        if (image.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        byte[] imageData;
-        try {
-            imageData = image.getBytes();
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return imageData;
+                              @RequestPart(value = "image") MultipartFile image,
+                              Authentication authentication
+    ) {
+        return adService.updateAdImage(image, Long.valueOf(id), authentication);
     }
 
 

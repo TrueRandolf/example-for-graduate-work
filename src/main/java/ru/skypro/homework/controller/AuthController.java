@@ -7,11 +7,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
+import ru.skypro.homework.exceptions.UnauthorizedException;
 import ru.skypro.homework.service.AuthService;
 
 import javax.validation.Valid;
@@ -24,30 +23,30 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Tag(name="Авторизация")
+    @Tag(name = "Авторизация")
     @Operation(summary = "Авторизация пользователя",
-    responses = {
-            @ApiResponse(responseCode = "200",description = "OK", content = @Content()),
-            @ApiResponse(responseCode = "401",description = "Unauthorized", content = @Content()),
-    })
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK", content = @Content()),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            })
     @PostMapping("/login")
     public void login(@Valid @RequestBody Login login) {
         if (!authService.login(login.getUsername(), login.getPassword())) {
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new UnauthorizedException("");
         }
+        log.info("Successful login user {}", login.getUsername());
     }
 
-    @Tag(name="Регистрация")
+    @Tag(name = "Регистрация")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Регистрация пользователя",
-    responses = {
-        @ApiResponse(responseCode = "201",description = "Created", content = @Content()),
-        @ApiResponse(responseCode = "400",description = "Bad Request", content = @Content()),
-    })
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Created", content = @Content()),
+                    @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
+            })
     @PostMapping("/register")
     public void register(@Valid @RequestBody Register register) {
-        if (!authService.register(register)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        authService.register(register);
+        log.info("User registered {}", register.getUsername());
     }
 }

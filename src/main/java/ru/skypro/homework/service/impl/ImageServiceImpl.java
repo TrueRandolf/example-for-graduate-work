@@ -1,24 +1,19 @@
 package ru.skypro.homework.service.impl;
 
-import liquibase.pro.packaged.L;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-import ru.skypro.homework.dto.ErrorDto;
+import ru.skypro.homework.exceptions.BadRequestException;
 import ru.skypro.homework.service.ImageService;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -68,21 +63,21 @@ public class ImageServiceImpl implements ImageService {
         String contentType = file.getContentType();
         if (file.isEmpty()) {
             log.error("Empty image try to load !");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect file");
+            throw new BadRequestException("Incorrect file");
         }
 
         if (file.getSize() > MAX_SIZE) {
             log.error("File too big!");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File too big!");
+            throw new BadRequestException("File too big");
         }
 
         if (contentType == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown file type");
+            throw new BadRequestException("Unknown file type");
         }
 
         String extension = contentType.substring(contentType.lastIndexOf("/") + 1).toLowerCase();
         if (!ALLOWED_IMAGETYPES.contains(extension)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported file type");
+            throw new BadRequestException("Unsupported file type");
         }
 
         String fileName = String.format("%s_%s.%s", userId, UUID.randomUUID(), extension);
@@ -93,9 +88,9 @@ public class ImageServiceImpl implements ImageService {
             Files.copy(is, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             log.error("File save error {} ", filePath, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Fail save file");
+            throw new UncheckedIOException("Fail save file", e);
         }
-        log.info("Saved image path successfully: {}", fileName);
+        log.info("Save image path successfully: {}", fileName);
         return subDir + "/" + fileName;
     }
 
@@ -112,8 +107,8 @@ public class ImageServiceImpl implements ImageService {
                 log.warn("Filepath not found! {}", path);
             }
         } catch (IOException e) {
-            log.error("Error file delete ! {}", filePath, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error disk file delete");
+            log.error("Error file delete! {}", filePath, e);
+            throw new UncheckedIOException("Error disk file delete", e);
         }
     }
 

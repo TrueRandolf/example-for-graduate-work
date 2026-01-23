@@ -2,18 +2,18 @@ package ru.skypro.homework.service.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import org.webjars.NotFoundException;
 import ru.skypro.homework.dto.comments.Comment;
 import ru.skypro.homework.dto.comments.Comments;
 import ru.skypro.homework.dto.comments.CreateOrUpdateComment;
 import ru.skypro.homework.entities.AdEntity;
 import ru.skypro.homework.entities.CommentEntity;
 import ru.skypro.homework.entities.UserEntity;
+import ru.skypro.homework.exceptions.ForbiddenException;
+import ru.skypro.homework.exceptions.NotFoundException;
+import ru.skypro.homework.exceptions.UnauthorizedException;
 import ru.skypro.homework.mappers.CommentMapper;
 import ru.skypro.homework.repository.AdsRepository;
 import ru.skypro.homework.repository.CommentRepository;
@@ -26,11 +26,6 @@ import ru.skypro.homework.service.CommentService;
 @Service
 public class CommentServiceImpl implements CommentService {
 
-//    boolean deleteComment(Long adId, Long commentId);
-//
-//    Comment updateComment(Long adId, Long commentId, CreateOrUpdateComment comment);
-
-
     private final CommentRepository commentRepository;
     private final AdsRepository adsRepository;
     private final UserRepository userRepository;
@@ -39,11 +34,16 @@ public class CommentServiceImpl implements CommentService {
 
 
     @Transactional(readOnly = true)
-    public Comments getAllCommentsAd(Long adId) {
+    public Comments getAllCommentsAd(Long adId, Authentication authentication) {
         log.info("invoked comment service get all comments");
-        if (!adsRepository.existsById(adId)) {
-            throw new NotFoundException("Not found ad");
+
+        AdEntity adEntity = adsRepository.findById(adId)
+                .orElseThrow(() -> new NotFoundException("Ad not found"));
+
+        if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
+            throw new ForbiddenException("Access denied");
         }
+
         return commentMapper.toComments(commentRepository.findByAd_Id(adId));
     }
 
@@ -52,7 +52,11 @@ public class CommentServiceImpl implements CommentService {
         log.info("invoked comment service add comment");
 
         AdEntity adEntity = adsRepository.findById(adId)
-                .orElseThrow(() -> new NotFoundException("Not found ad"));
+                .orElseThrow(() -> new NotFoundException("Ad not found"));
+
+        if (!accessService.isOwner(adEntity.getUser().getUserName(), authentication)) {
+            throw new ForbiddenException("Access denied");
+        }
 
         UserEntity userEntity = userRepository.findByUserName(authentication.getName())
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -73,11 +77,11 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new NotFoundException("Comment not found"));
 
         if (!adsRepository.existsById(adId)) {
-            throw new NotFoundException("Not found ad");
+            throw new NotFoundException("Ad not found");
         }
 
         if (!accessService.isOwner(commentEntity.getUser().getUserName(), authentication)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            throw new UnauthorizedException("Access denied");
         }
 
         if (!commentEntity.getAd().getId().equals(adId)) {
@@ -95,17 +99,17 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new NotFoundException("Not found ad"));
 
         CommentEntity commentEntity = commentRepository.findById(commentId)
-                        .orElseThrow(() -> new NotFoundException("Comment not found"));
+                .orElseThrow(() -> new NotFoundException("Comment not found"));
 
-        if(!commentEntity.getAd().getId().equals(adId)){
+        if (!commentEntity.getAd().getId().equals(adId)) {
             throw new NotFoundException("Wrong relation ad->comment");
         }
 
         if (!accessService.isOwner(commentEntity.getUser().getUserName(), authentication)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            throw new UnauthorizedException("Access denied");
         }
 
-        commentMapper.updateCommentEntity(updateComment,commentEntity);
+        commentMapper.updateCommentEntity(updateComment, commentEntity);
         commentRepository.save(commentEntity);
         return commentMapper.toCommentDto(commentEntity);
     }
