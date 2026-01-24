@@ -45,3 +45,5 @@ app:
     main-dir: resale_images
     ads-dir: ads_images
     avatars-dir: avatars_images
+  images:
+    base-url: /images/

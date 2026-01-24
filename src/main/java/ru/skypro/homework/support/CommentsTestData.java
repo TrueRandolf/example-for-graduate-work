@@ -29,7 +29,7 @@ public class CommentsTestData {
         Comment comment = new Comment();
         comment.setAuthor(AUTHOR_ID);
         comment.setAuthorImage(AUTHOR_IMAGE);
-        comment.setAuthorFirstname(AUTHOR_FIRST_NAME);
+        comment.setAuthorFirstName(AUTHOR_FIRST_NAME);
         comment.setCreatedAt(CREATED_TIME);
         comment.setPk(COMMENT_ID);
         comment.setText(COMMENT_TEXT);

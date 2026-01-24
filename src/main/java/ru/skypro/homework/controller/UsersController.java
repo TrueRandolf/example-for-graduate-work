@@ -37,25 +37,26 @@ public class UsersController {
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
             }
     )
-    public void setPassword(@Valid @RequestBody NewPassword newPassword) {
+    public void setPassword(@Valid @RequestBody NewPassword newPassword, Authentication authentication) {
+        userService.updateUserPassword(newPassword, authentication);
     }
 
-        @GetMapping("/users/me")
-        @Operation(
-                summary = "Получение информации об авторизованном пользователе",
-                responses = {
-                        @ApiResponse(
-                                responseCode = "200",
-                                description = "OK",
-                                content = @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = User.class))),
-                        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
-                }
-        )
-        public User getUser(Authentication authentication) {
-            return userService.getAuthUserInfo(authentication);
-        }
+    @GetMapping("/users/me")
+    @Operation(
+            summary = "Получение информации об авторизованном пользователе",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "OK",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = User.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+            }
+    )
+    public User getUser(Authentication authentication) {
+        return userService.getAuthUserInfo(authentication);
+    }
 
     @PatchMapping("/users/me")
     @Operation(
@@ -74,18 +75,17 @@ public class UsersController {
         return userService.updateAuthUser(user, authentication);
     }
 
-        @PatchMapping(value = "/users/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        @Operation(
-                summary = "Обновление аватара авторизованного пользователя",
-                responses = {
-                        @ApiResponse(responseCode = "200", description = "OK", content = @Content()),
-                        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
-                }
-        )
-        public void updateUserImage(@RequestPart("image") MultipartFile image, Authentication authentication) {
-            userService.updateAuthUserImage(image, authentication);
-        }
-
+    @PatchMapping(value = "/users/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Обновление аватара авторизованного пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK", content = @Content()),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+            }
+    )
+    public void updateUserImage(@RequestPart("image") MultipartFile image, Authentication authentication) {
+        userService.updateAuthUserImage(image, authentication);
+    }
 
 
     @DeleteMapping("/user/me/{id}")

@@ -90,8 +90,8 @@ public class ImageServiceImpl implements ImageService {
             log.error("File save error {} ", filePath, e);
             throw new UncheckedIOException("Fail save file", e);
         }
-        log.info("Save image path successfully: {}", fileName);
-        return subDir + "/" + fileName;
+        log.info("Save image path successfully: {}", filePath);
+        return  subDir + "/" + fileName;
     }
 
     public void deleteImage(String filePath) {
@@ -100,6 +100,10 @@ public class ImageServiceImpl implements ImageService {
             return;
         }
         try {
+//            String pathOnDisk = filePath.startsWith("/images/")
+//                    ? filePath.substring(8)
+//                    : filePath;
+
             Path path = Path.of(mainDir).resolve(filePath);
             if (Files.deleteIfExists(path)) {
                 log.info("File successfully deleted {}", path);

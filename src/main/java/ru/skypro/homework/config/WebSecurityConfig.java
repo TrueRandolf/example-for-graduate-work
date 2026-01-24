@@ -23,9 +23,6 @@ public class WebSecurityConfig {
             "/login",
             "/register",
             "/images/**"
-
-            //, "/ads"   //не забудь убрать!! это - отладка!!!
-
     };
 
 
@@ -33,16 +30,17 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf()
                 .disable()
+                .cors(withDefaults())
                 .authorizeHttpRequests(
                         authorization ->
                                 authorization
                                         .mvcMatchers(AUTH_WHITELIST)
                                         //.mvcMatchers("/users/me")
                                         .permitAll()
-                                        .mvcMatchers("/ads/**", "/users/**")
+                                           .mvcMatchers("/ads/**", "/users/**")
                                         .authenticated())
-                .cors()
-                .and()
+
+//                .and()
                 .httpBasic(withDefaults());
         return http.build();
     }

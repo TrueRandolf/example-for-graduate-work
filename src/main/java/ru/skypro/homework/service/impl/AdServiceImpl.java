@@ -84,7 +84,6 @@ public class AdServiceImpl implements AdService {
         accessService.checkAuth(authentication);
         AdEntity adEntity = adsRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Ad not found"));
-
         accessService.checkEdit(authentication, adEntity.getUser().getUserName());
 
         String filePath = adEntity.getAdImage();
