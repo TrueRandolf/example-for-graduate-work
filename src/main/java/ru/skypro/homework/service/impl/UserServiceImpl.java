@@ -24,7 +24,6 @@ import ru.skypro.homework.service.UserService;
 
 import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -117,8 +116,7 @@ public class UserServiceImpl implements UserService {
 
 
     // MAINTENANCE SECTION
-    // BEWARE THE JUBBERWOCK, MY SON !!!
-    // delete user
+    // Delete user
 
     @Transactional
     public void softDeleteUser(Long id, Authentication authentication) {
@@ -128,7 +126,6 @@ public class UserServiceImpl implements UserService {
 
         accessService.checkEdit(authentication, userToDelete.getUserName());
 
-        //POINT OF NO RETURN !!!
         adService.deleteAllByUserId(id);
 
         String newName = id + "@deleted";
@@ -160,7 +157,6 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toSet());
         if (userEntity.getUserImage() != null && !userEntity.getUserImage().isBlank())
             imageToDelete.add(userEntity.getUserImage());
-        //POINT OF NO RETURN !!!
         userRepository.delete(userEntity);
 
         imageToDelete.forEach(path -> {

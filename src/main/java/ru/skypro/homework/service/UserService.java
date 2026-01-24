@@ -16,4 +16,6 @@ public interface UserService {
     void updateAuthUserImage(MultipartFile file, Authentication authentication);
 
     void softDeleteUser(Long id, Authentication authentication);
+
+    void hardDeleteUser(Long id, Authentication authentication);
 }

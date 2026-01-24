@@ -87,20 +87,4 @@ public class UsersController {
         userService.updateAuthUserImage(image, authentication);
     }
 
-
-    @DeleteMapping("/user/me/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    @Operation(
-//            summary = "Удаление объявления",
-//            responses = {
-//                    @ApiResponse(responseCode = "204", description = "No Content", content = @Content()),
-//                    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-//                    @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content()),
-//                    @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
-//            }
-//    )
-    public void removeUser(@PathVariable Integer id, Authentication authentication) {
-        userService.softDeleteUser(Long.valueOf(id), authentication);
-    }
-
 }

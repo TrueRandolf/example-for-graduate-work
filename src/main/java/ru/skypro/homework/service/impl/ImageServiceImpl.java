@@ -3,7 +3,6 @@ package ru.skypro.homework.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.exceptions.BadRequestException;
 import ru.skypro.homework.service.ImageService;
@@ -49,7 +48,6 @@ public class ImageServiceImpl implements ImageService {
     }
 
 
-    // обертки над
     public String saveAdImage(MultipartFile file, Long userId) {
         return saveImage(file, adsFilePath, adsDir, userId);
     }
@@ -57,7 +55,6 @@ public class ImageServiceImpl implements ImageService {
     public String saveAvatarImage(MultipartFile file, Long userId) {
         return saveImage(file, avatarsFilePath, avatarsDir, userId);
     }
-    //
 
     private String saveImage(MultipartFile file, Path targetDir, String subDir, Long userId) {
         String contentType = file.getContentType();
@@ -91,7 +88,7 @@ public class ImageServiceImpl implements ImageService {
             throw new UncheckedIOException("Fail save file", e);
         }
         log.info("Save image path successfully: {}", filePath);
-        return  subDir + "/" + fileName;
+        return subDir + "/" + fileName;
     }
 
     public void deleteImage(String filePath) {
@@ -100,10 +97,6 @@ public class ImageServiceImpl implements ImageService {
             return;
         }
         try {
-//            String pathOnDisk = filePath.startsWith("/images/")
-//                    ? filePath.substring(8)
-//                    : filePath;
-
             Path path = Path.of(mainDir).resolve(filePath);
             if (Files.deleteIfExists(path)) {
                 log.info("File successfully deleted {}", path);

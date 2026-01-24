@@ -30,8 +30,8 @@ public class AccessServiceImpl implements AccessService {
         }
     }
 
-    public void checkAdmin(Authentication authentication){
-        if(!isAdmin(authentication)){
+    public void checkAdmin(Authentication authentication) {
+        if (!isAdmin(authentication)) {
             log.warn("Trying non-admin access to admin-only operation! {}", authentication.getName());
             throw new ForbiddenException("Only Admin access!");
         }

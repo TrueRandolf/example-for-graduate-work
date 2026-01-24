@@ -31,7 +31,6 @@ public class MyUserDetailsService implements UserDetailsService {
                         .password(authEntity.getPassword())
                         .roles(authEntity.getRole().name())
                         .build();
-        System.out.println("userDetails.toString() = " + userDetails.toString());
         return userDetails;
     }
 }

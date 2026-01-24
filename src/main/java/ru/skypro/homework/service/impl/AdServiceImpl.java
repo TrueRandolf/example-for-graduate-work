@@ -145,19 +145,16 @@ public class AdServiceImpl implements AdService {
         }
     }
 
-    // MAINTENANCE SECTION. BEWARE THE JABBERWOCK, MY SON !!!
-    // delete ads. Call only after security checks!!
+    // MAINTENANCE SECTION
+    // Delete ads. Call only after security checks!
 
     @Transactional
     public void deleteAllByUserId(Long userId) {
-        // get ads
         List<AdEntity> adEntityList = adsRepository.findAllByUser_Id(userId);
-        // get unique filenames
         Set<String> imageToDelete = adEntityList.stream()
                 .map(AdEntity::getAdImage)
                 .filter(i -> i != null && !i.isBlank())
                 .collect(Collectors.toSet());
-        // get out all ad by userId
         adsRepository.deleteByUser_Id(userId);
 
         imageToDelete.forEach(path -> {
