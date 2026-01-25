@@ -11,19 +11,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.ads.Ad;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
-import ru.skypro.homework.support.AdsTestData;
+import ru.skypro.homework.service.AdService;
 
 import javax.validation.Valid;
-import java.io.IOException;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -31,6 +28,9 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Tag(name = "Объявления")
 public class AdsController {
+
+    private final AdService adService;
+
 
     @GetMapping("/ads")
     @Operation(
@@ -46,8 +46,8 @@ public class AdsController {
                     )
             }
     )
-    public Ads getAllAds() {
-        return AdsTestData.createFullAds();
+    public Ads getAllAds(Authentication authentication) {
+        return adService.getAds(authentication);
     }
 
     @PostMapping(value = "/ads", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -65,18 +65,12 @@ public class AdsController {
             @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @Valid CreateOrUpdateAd properties,
             @RequestPart("image") MultipartFile image,
-            Authentication authentication) {
-        if (properties == null || image == null || image.getOriginalFilename().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        Ad ad = AdsTestData.createFullAd();
-        ad.setPk(AdsTestData.ANOTHER_AD_ID);
-        ad.setTitle(properties.getTitle());
-        ad.setPrice(properties.getPrice());
-        ad.setImage(image.getOriginalFilename());
+            @Parameter(hidden = true) Authentication authentication
+    ) {
 
-        return ad;
+        return adService.addSimpleAd(properties, image, authentication);
     }
+
 
     @GetMapping("/ads/{id}")
     @Operation(
@@ -91,9 +85,9 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public ExtendedAd getAds(@PathVariable Integer id) {
+    public ExtendedAd getAds(@PathVariable Integer id, Authentication authentication) {
 
-        return AdsTestData.createFullExtendedAd();
+        return adService.getAdInfo(Long.valueOf(id), authentication);
     }
 
     @DeleteMapping("/ads/{id}")
@@ -107,7 +101,8 @@ public class AdsController {
                     @ApiResponse(responseCode = "404", description = "Not Found", content = @Content()),
             }
     )
-    public void removeAd(@PathVariable Integer id) {
+    public void removeAd(@PathVariable Integer id, Authentication authentication) {
+        adService.deleteSimpleAd(Long.valueOf(id), authentication);
     }
 
     @PatchMapping("/ads/{id}")
@@ -130,15 +125,8 @@ public class AdsController {
     )
     public Ad updateAds(
             @PathVariable Integer id,
-            @RequestBody(required = false) CreateOrUpdateAd update) {
-        if (update == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        Ad updateAd = AdsTestData.createFullAd();
-        updateAd.setTitle(update.getTitle());
-        updateAd.setPrice(update.getPrice());
-
-        return updateAd;
+            @RequestBody(required = false) CreateOrUpdateAd update, Authentication authentication) {
+        return adService.updateSingleAd(Long.valueOf(id), update, authentication);
     }
 
 
@@ -158,8 +146,7 @@ public class AdsController {
             }
     )
     public Ads getAdsMe(Authentication authentication) {
-        Ads ads = AdsTestData.createFullAds();
-        return ads;
+        return adService.getAllAdsAuthUser(authentication);
     }
 
 
@@ -172,7 +159,7 @@ public class AdsController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
-                                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,//"application/octet-stream",
+                                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
                                     array = @ArraySchema(schema = @Schema(type = "string", format = "byte"))
                             )
                     ),
@@ -182,17 +169,10 @@ public class AdsController {
             }
     )
     public byte[] updateImage(@PathVariable("id") Integer id,
-                              @RequestPart(value = "image") MultipartFile image) {
-        if (image.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        byte[] imageData;
-        try {
-            imageData = image.getBytes();
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return imageData;
+                              @RequestPart(value = "image") MultipartFile image,
+                              Authentication authentication
+    ) {
+        return adService.updateAdImage(image, Long.valueOf(id), authentication);
     }
 
 

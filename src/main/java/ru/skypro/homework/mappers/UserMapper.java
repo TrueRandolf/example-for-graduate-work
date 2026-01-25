@@ -1,9 +1,6 @@
 package ru.skypro.homework.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import ru.skypro.homework.dto.Register;
 import ru.skypro.homework.dto.users.UpdateUser;
 import ru.skypro.homework.dto.users.User;
@@ -18,11 +15,21 @@ public interface UserMapper {
     @Mapping(target = "firstName", source = "userEntity.firstName")
     @Mapping(target = "lastName", source = "userEntity.lastName")
     @Mapping(target = "phone", source = "userEntity.phone")
-    @Mapping(target = "image", source = "userEntity.userImage")
+    @Mapping(target = "image", source = "userEntity.userImage", qualifiedByName = "userImageToPath")
     @Mapping(target = "role", source = "authEntity.role")
     User toUserDto(UserEntity userEntity, AuthEntity authEntity);
 
+    @Named("userImageToPath")
+    default String mapImage(String userImage) {
+        if (userImage == null) return null;
+        return "/images/" + userImage;
+    }
+
+
     void updateUserEntity(UpdateUser dto, @MappingTarget UserEntity entity);
+
+
+    UpdateUser toDtoUpdateUser(UserEntity entity);
 
     @Mapping(target = "userName", source = "username")
     UserEntity toUserEntity(Register register);

@@ -9,15 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.users.NewPassword;
 import ru.skypro.homework.dto.users.UpdateUser;
 import ru.skypro.homework.dto.users.User;
-import ru.skypro.homework.support.UserTestData;
+import ru.skypro.homework.service.UserService;
 
 import javax.validation.Valid;
 
@@ -28,6 +26,8 @@ import javax.validation.Valid;
 @Tag(name = "Пользователи")
 public class UsersController {
 
+    private final UserService userService;
+
     @PostMapping("/users/set_password")
     @Operation(
             summary = "Обновление пароля",
@@ -37,7 +37,8 @@ public class UsersController {
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
             }
     )
-    public void setPassword(@Valid @RequestBody NewPassword newPassword) {
+    public void setPassword(@Valid @RequestBody NewPassword newPassword, Authentication authentication) {
+        userService.updateUserPassword(newPassword, authentication);
     }
 
     @GetMapping("/users/me")
@@ -54,7 +55,7 @@ public class UsersController {
             }
     )
     public User getUser(Authentication authentication) {
-        return UserTestData.createFullUser();
+        return userService.getAuthUserInfo(authentication);
     }
 
     @PatchMapping("/users/me")
@@ -70,15 +71,8 @@ public class UsersController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public UpdateUser updateUser(@Valid @RequestBody(required = false) UpdateUser updateUser) {
-        if (updateUser == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        UpdateUser user = UserTestData.createEmptyUpdateUser();
-        user.setFirstName(updateUser.getFirstName());
-        user.setLastName(updateUser.getLastName());
-        user.setPhone(updateUser.getPhone());
-        return user;
+    public UpdateUser updateUser(@Valid @RequestBody(required = false) UpdateUser user, Authentication authentication) {
+        return userService.updateAuthUser(user, authentication);
     }
 
     @PatchMapping(value = "/users/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -89,6 +83,8 @@ public class UsersController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
             }
     )
-    public void updateUserImage(@RequestPart("image") MultipartFile image) {
+    public void updateUserImage(@RequestPart("image") MultipartFile image, Authentication authentication) {
+        userService.updateAuthUserImage(image, authentication);
     }
+
 }
